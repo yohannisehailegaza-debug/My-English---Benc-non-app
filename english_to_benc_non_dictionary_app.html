@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benc'non - English Dictionary</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar and mobile polish */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 h-full flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- App Wrapper / Phone Mockup Frame for Desktop, Fullscreen on Mobile -->
+    <div class="w-full max-w-md mx-auto h-full flex flex-col bg-white dark:bg-slate-800 shadow-2xl overflow-hidden relative sm:my-4 sm:h-[90vh] sm:rounded-3xl border border-slate-200 dark:border-slate-700">
+        
+        <!-- Top App Bar -->
+        <header class="bg-indigo-600 dark:bg-indigo-900 text-white px-5 pt-6 pb-4 shadow-md z-10 flex-shrink-0">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center font-bold text-lg shadow-inner">
+                        B
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-tight leading-none">Benc'non Lexicon</h1>
+                        <p class="text-xs text-indigo-200 mt-1">English ⇄ Bench Dictionary</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="themeToggleBtn" onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition" title="Toggle Theme">
+                        <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
+                    </button>
+                    <button onclick="openInfoModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition" title="About">
+                        <i class="fa-solid fa-info text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Bar Container -->
+            <div class="relative mt-2">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-indigo-300">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search English or Benc'non word..." 
+                    class="w-full pl-10 pr-10 py-3 bg-indigo-700/60 dark:bg-indigo-950/60 text-white placeholder-indigo-200 text-sm rounded-xl border border-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-white/50 transition shadow-inner">
+                <button id="clearSearchBtn" onclick="clearSearch()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-indigo-300 hover:text-white hidden">
+                    <i class="fa-solid fa-circle-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Direction & Filters Bar -->
+            <div class="flex items-center justify-between mt-3 text-xs">
+                <button onclick="switchDirection()" id="directionLabel" class="flex items-center space-x-1.5 bg-indigo-700/80 hover:bg-indigo-800 px-3 py-1.5 rounded-lg text-indigo-100 font-medium transition shadow-sm">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-[10px]"></i>
+                    <span id="directionText">English → Benc'non</span>
+                </button>
+                <span id="wordCountBadge" class="text-indigo-200 font-medium">0 words</span>
+            </div>
+        </header>
+
+        <!-- Main Content Scrollable Area -->
+        <main id="mainContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 dark:bg-slate-900/50">
+            <!-- Dynamic Content Injected Here -->
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-2.5 px-6 flex justify-around items-center flex-shrink-0 z-10 shadow-lg">
+            <button onclick="switchTab('search')" id="navSearch" class="flex flex-col items-center text-indigo-600 dark:text-indigo-400 transition">
+                <i class="fa-solid fa-book-open text-lg mb-0.5"></i>
+                <span class="text-[11px] font-semibold">Dictionary</span>
+            </button>
+            <button onclick="switchTab('favorites')" id="navFavorites" class="flex flex-col items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition">
+                <i class="fa-solid fa-heart text-lg mb-0.5"></i>
+                <span class="text-[11px] font-medium">Saved</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="navQuiz" class="flex flex-col items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition">
+                <i class="fa-solid fa-graduation-cap text-lg mb-0.5"></i>
+                <span class="text-[11px] font-medium">Quiz</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Word Detail Modal -->
+    <div id="wordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity opacity-0">
+        <div id="modalContent" class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden transform translate-y-full sm:translate-y-0 transition-transform duration-300">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-indigo-50/50 dark:bg-slate-800/80">
+                <span id="modalPartOfSpeech" class="px-2.5 py-1 text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-md uppercase tracking-wider">Noun</span>
+                <div class="flex items-center space-x-2">
+                    <button id="modalFavBtn" onclick="toggleModalFavorite()" class="w-9 h-9 rounded-full bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-indigo-100 hover:text-indigo-600 transition flex items-center justify-center">
+                        <i class="fa-solid fa-heart"></i>
+                    </button>
+                    <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto space-y-6">
+                <div>
+                    <h2 id="modalEnglishWord" class="text-2xl font-bold text-slate-900 dark:text-white">English Word</h2>
+                    <p id="modalPhonetic" class="text-sm text-indigo-600 dark:text-indigo-400 font-medium mt-0.5">[ phonetic ]</p>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-100 dark:border-slate-700/60">
+                    <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">Benc'non (Bench) Translation</span>
+                    <p id="modalBencnonWord" class="text-xl font-bold text-indigo-600 dark:text-indigo-400">Bench Word</p>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Example Usage</h4>
+                    <div class="space-y-3">
+                        <div class="bg-indigo-50/40 dark:bg-indigo-950/20 p-3.5 rounded-xl border border-indigo-100/60 dark:border-indigo-900/30">
+                            <p id="modalExampleEn" class="text-sm text-slate-700 dark:text-slate-200 font-medium">English example sentence goes here.</p>
+                            <p id="modalExampleBn" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1 italic">Bench example sentence goes here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="modalNotesContainer" class="hidden">
+                    <h4 class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Cultural / Grammatical Notes</h4>
+                    <p id="modalNotes" class="text-sm text-slate-600 dark:text-slate-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 p-3 rounded-xl"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info / About Modal -->
+    <div id="infoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-info text-indigo-600"></i>
+                    <span>About Benc'non Lexicon</span>
+                </h3>
+                <button onclick="closeInfoModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                This offline-capable dictionary is designed to help preserve and learn <strong class="text-indigo-600 dark:text-indigo-400">Benc'non (Bench)</strong>, a distinctive Omotic language spoken in Southwestern Ethiopia.
+            </p>
+            <div class="bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-xl text-xs space-y-2 text-slate-500 dark:text-slate-400">
+                <div class="flex justify-between"><span>Total Vocabulary:</span> <span id="infoTotalWords" class="font-semibold text-slate-700 dark:text-slate-200">0</span></div>
+                <div class="flex justify-between"><span>Status:</span> <span class="font-semibold text-emerald-600">100% Offline Ready</span></div>
+            </div>
+            <button onclick="closeInfoModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition shadow-md">
+                Got It
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center space-x-2">
+        <i id="toastIcon" class="fa-solid fa-check text-emerald-400"></i>
+        <span id="toastMsg">Action successful</span>
+    </div>
+
+    <!-- JavaScript Application Core -->
+    <script>
+        // Benc'non (Bench) Comprehensive Pre-populated Dictionary Dataset
+        const dictionaryData = [
+            { id: 1, en: "Hello / Greetings", bn: "woro / hane", pos: "Interjection", phonetic: "[haːneː]", exEn: "Hello, how are you today?", exBn: "woro , wosewo?", notes: "Common friendly greeting in Bench." },
+            { id: 2, en: "water", bn: "sov", pos: "Noun", phonetic: "[so][v]", exEn: "Please give me cold water.", exBn: "tam sova kobs utso.", notes: "Essential daily vocabulary." },
+            { id: 3, en: "Food / Bread", bn: "Mve", pos: "Noun", phonetic: "[mɛʼv]", exEn: "The food is very delicious.", exBn: "mva hac'i soyisi eskiskuwe.", notes: "Refers broadly to meals or traditional bread." },
+            { id: 4, en: "sun", bn: "obar", pos: "Noun", phonetic: "[obar]", exEn: "The sun is shining brightly today.", exBn: "obari woyintin bayam obtaa.", notes: "" },
+            { id: 5, en: "House / Home", bn: "ket", pos: "Noun", phonetic: "[keːt]", exEn: "I am going back to my house.", exBn: "Ta' ta ketin karta haminae.", notes: "" },
+            { id: 6, en: "Fire", bn: "ta'm", pos: "Noun", phonetic: "[taʼm]", exEn: "Warm yourself by the fire.", exBn: "tam kac'ka ni guz koyiso.", notes: "" },
+            { id: 7, en: "Child / Son", bn: "ni'a", pos: "Noun", phonetic: "[nʼɛʼɑ]", exEn: "The child is playing outside.", exBn: "niyavi miyarqin kaskiskinde.", notes: "" },
+            { id: 8, en: "mother", bn: "Bayi", pos: "Noun", phonetic: "[ba]yi]", exEn: "My mother is cooking delicious food.", exBn: "ta'bayia soyaga wot qayitsiskine.", notes: "" },
+            { id: 9, en: "Father", bn: "Aba", pos: "Noun", phonetic: "[ɑbɑ]", exEn: "Father is working in the field.", exBn: "Abayi ba qayixs kutsin qayxsiskuwe.", notes: "" },
+            { id: 10, en: "Tree / Wood", bn: "inch", pos: "Noun", phonetic: "[inchʃ]", exEn: "Birds are sitting on the tall tree.", exBn: "shoytindi incha p'adin woginsiskinde.", notes: "" },
+            { id: 11, en: "Good", bn: "soy", pos: "Adjective", phonetic: "[so][y]", exEn: "This is a very good book.", exBn: "Hac'i bexam soyaga metsafagiziwo.", notes: "" },
+            { id: 12, en: "Big / Large", bn: "eez", pos: "Adjective", phonetic: "[eez]", exEn: "That mountain is very big.", exBn: "Gaga nekuc'i eezagiziwo.", notes: "" },
+            { id: 13, en: "Small", bn: "yars", pos: "Adjective", phonetic: "[yars]", exEn: "He has a small dog.", exBn: "Yars kyani yisn yiskue.", notes: "" },
+            { id: 14, en: "To Eat", bn: "Mveina", pos: "Verb", phonetic: "[mveina]", exEn: "We want to eat traditional food.", exBn: "Nū bahilawi mve mveina koyiskue.", notes: "Base verb form." },
+            { id: 15, en: "To Drink", bn: "uShina", pos: "Verb", phonetic: "[ushina]", exEn: "Drink plenty of water after walking.", exBn: "kot ne obtu geshin sov uSho.", notes: "Base verb form." },
+            { id: 16, en: "To Walk / Go", bn: "Ham", pos: "Verb", phonetic: "[ham]", exEn: "Let us walk to the marketplace.", exBn: "Nū pashini gabin hame.", notes: "" },
+            { id: 17, en: "To Sleep", bn: "Surn'a", pos: "Verb", phonetic: "[surn'a]", exEn: "Children need to sleep early.", exBn: "Niava yantsi h'ayiqin surni koyiskue.", notes: "" },
+            { id: 18, en: "Market", bn: "Gab", pos: "Noun", phonetic: "[ɡɑb]", exEn: "People go to the market on Saturday.", exBn: "Atsi gabqan misiran goqin hanqiskwe.", notes: "" },
+            { id: 19, en: "Cattle / Cow", bn: "Diyant", pos: "Noun", phonetic: "[diyant]", exEn: "The cattle are grazing in the green meadow.", exBn: "Diyanti buyixin mat mvi yiskinde.", notes: "" },
+            { id: 20, en: "Rain", bn: "wol", pos: "Noun", phonetic: "[birɑ]", exEn: "Heavy rain is expected this afternoon.", exBn: "Bira woshkute.", notes: "" }
+        ];
+
+        // Application State
+        let currentTab = 'search'; // 'search', 'favorites', 'quiz'
+        let searchDirection = 'en2bn'; // 'en2bn' or 'bn2en'
+        let searchQuery = '';
+        let favorites = JSON.parse(localStorage.getItem('bencnon_favs')) || [];
+        let activeModalWord = null;
+        let quizCurrentIndex = 0;
+        let quizScore = 0;
+        let quizQuestions = [];
+        let quizAnswered = false;
+
+        // Initialize on load
+        window.onload = function() {
+            initTheme();
+            renderApp();
+            document.getElementById('infoTotalWords').innerText = dictionaryData.length;
+        };
+
+        // Theme Management
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = "fa-solid fa-sun text-sm";
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').className = "fa-solid fa-moon text-sm";
+            }
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('themeIcon').className = "fa-solid fa-moon text-sm";
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('themeIcon').className = "fa-solid fa-sun text-sm";
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            currentTab = tab;
+            // Update Nav UI
+            ['search', 'favorites', 'quiz'].forEach(t => {
+                const btn = document.getElementById('nav' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (t === tab) {
+                    btn.className = "flex flex-col items-center text-indigo-600 dark:text-indigo-400 transition scale-105";
+                } else {
+                    btn.className = "flex flex-col items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition";
+                }
+            });
+
+            // If switching to quiz, initialize quiz
+            if (tab === 'quiz') {
+                initQuiz();
+            }
+
+            renderApp();
+        }
+
+        // Search Direction Toggle
+        function switchDirection() {
+            searchDirection = searchDirection === 'en2bn' ? 'bn2en' : 'en2bn';
+            const labelText = searchDirection === 'en2bn' ? "English → Benc'non" : "Benc'non → English";
+            document.getElementById('directionText').innerText = labelText;
+            document.getElementById('searchInput').placeholder = searchDirection === 'en2bn' ? "Search English word..." : "Search Benc'non word...";
+            renderApp();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (searchQuery.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            if (currentTab === 'search') {
+                renderWordList();
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            searchQuery = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            if (currentTab === 'search') {
+                renderWordList();
+            }
+        }
+
+        // Render Main View depending on active tab
+        function renderApp() {
+            const mainContainer = document.getElementById('mainContainer');
+            
+            if (currentTab === 'search') {
+                renderWordList();
+            } else if (currentTab === 'favorites') {
+                renderFavoritesList();
+            } else if (currentTab === 'quiz') {
+                renderQuizView();
+            }
+        }
+
+        // Render Dictionary Word List
+        function renderWordList() {
+            const mainContainer = document.getElementById('mainContainer');
+            
+            // Filter dictionary data based on query & direction
+            const filtered = dictionaryData.filter(item => {
+                if (searchDirection === 'en2bn') {
+                    return item.en.toLowerCase().includes(searchQuery) || item.bn.toLowerCase().includes(searchQuery);
+                } else {
+                    return item.bn.toLowerCase().includes(searchQuery) || item.en.toLowerCase().includes(searchQuery);
+                }
+            });
+
+            document.getElementById('wordCountBadge').innerText = `${filtered.length} words`;
+
+            if (filtered.length === 0) {
+                mainContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+                        <div class="w-16 h-16 bg-indigo-50 dark:bg-slate-800 text-indigo-400 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-sm">
+                            <i class="fa-solid fa-face-frown"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200">No matching words found</h3>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Try searching with a different term or check spelling.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="space-y-2.5 pb-4">';
+            filtered.forEach(item => {
+                const isFav = favorites.includes(item.id);
+                const primaryText = searchDirection === 'en2bn' ? item.en : item.bn;
+                const secondaryText = searchDirection === 'en2bn' ? item.bn : item.en;
+                
+                html += `
+                    <div onclick="openWordModal(${item.id})" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600 transition cursor-pointer flex items-center justify-between group">
+                        <div class="space-y-1 pr-3 flex-1">
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-bold text-slate-900 dark:text-white text-base group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">${primaryText}</h3>
+                                <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">${item.pos}</span>
+                            </div>
+                            <p class="text-sm font-medium text-indigo-600 dark:text-indigo-400">${secondaryText} <span class="text-xs text-slate-400 font-normal ml-1">${item.phonetic}</span></p>
+                        </div>
+                        <button onclick="event.stopPropagation(); toggleFavorite(${item.id})" class="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition text-slate-300 dark:text-slate-600 ${isFav ? 'text-rose-500 dark:text-rose-400' : ''}">
+                            <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart text-lg"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            mainContainer.innerHTML = html;
+        }
+
+        // Render Favorites List
+        function renderFavoritesList() {
+            const mainContainer = document.getElementById('mainContainer');
+            const favItems = dictionaryData.filter(item => favorites.includes(item.id));
+            
+            document.getElementById('wordCountBadge').innerText = `${favItems.length} saved`;
+
+            if (favItems.length === 0) {
+                mainContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+                        <div class="w-16 h-16 bg-rose-50 dark:bg-slate-800 text-rose-400 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-sm">
+                            <i class="fa-solid fa-heart-crack"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200">No saved words yet</h3>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Tap the heart icon on any word to bookmark it for quick revision.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="space-y-2.5 pb-4">';
+            favItems.forEach(item => {
+                html += `
+                    <div onclick="openWordModal(${item.id})" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex items-center justify-between group">
+                        <div class="space-y-1 pr-3 flex-1">
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-bold text-slate-900 dark:text-white text-base group-hover:text-indigo-600 transition">${item.en}</h3>
+                                <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">${item.pos}</span>
+                            </div>
+                            <p class="text-sm font-medium text-indigo-600 dark:text-indigo-400">${item.bn} <span class="text-xs text-slate-400 font-normal ml-1">${item.phonetic}</span></p>
+                        </div>
+                        <button onclick="event.stopPropagation(); toggleFavorite(${item.id})" class="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition text-rose-500">
+                            <i class="fa-solid fa-heart text-lg"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            mainContainer.innerHTML = html;
+        }
+
+        // Favorites toggle logic
+        function toggleFavorite(id) {
+            const index = favorites.indexOf(id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                showToast("Removed from saved words", "fa-solid fa-heart-broken text-amber-400");
+            } else {
+                favorites.push(id);
+                showToast("Saved to bookmarks", "fa-solid fa-heart text-rose-500");
+            }
+            localStorage.setItem('bencnon_favs', JSON.stringify(favorites));
+            
+            // Re-render current tab
+            renderApp();
+            
+            // Update modal fav button if modal is open
+            if (activeModalWord && activeModalWord.id === id) {
+                updateModalFavState();
+            }
+        }
+
+        // Modal Controls
+        function openWordModal(id) {
+            activeModalWord = dictionaryData.find(item => item.id === id);
+            if (!activeModalWord) return;
+
+            document.getElementById('modalPartOfSpeech').innerText = activeModalWord.pos;
+            document.getElementById('modalEnglishWord').innerText = activeModalWord.en;
+            document.getElementById('modalPhonetic').innerText = activeModalWord.phonetic;
+            document.getElementById('modalBencnonWord').innerText = activeModalWord.bn;
+            document.getElementById('modalExampleEn').innerText = `"${activeModalWord.exEn}"`;
+            document.getElementById('modalExampleBn').innerText = activeModalWord.exBn;
+
+            const notesContainer = document.getElementById('modalNotesContainer');
+            if (activeModalWord.notes) {
+                document.getElementById('modalNotes').innerText = activeModalWord.notes;
+                notesContainer.classList.remove('hidden');
+            } else {
+                notesContainer.classList.add('hidden');
+            }
+
+            updateModalFavState();
+
+            const modal = document.getElementById('wordModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('wordModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                activeModalWord = null;
+            }, 300);
+        }
+
+        function toggleModalFavorite() {
+            if (activeModalWord) {
+                toggleFavorite(activeModalWord.id);
+            }
+        }
+
+        function updateModalFavState() {
+            const btn = document.getElementById('modalFavBtn');
+            const isFav = favorites.includes(activeModalWord.id);
+            if (isFav) {
+                btn.className = "w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-500 flex items-center justify-center transition shadow-sm";
+            } else {
+                btn.className = "w-9 h-9 rounded-full bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-indigo-100 hover:text-indigo-600 transition flex items-center justify-center";
+            }
+        }
+
+        // Info Modal
+        function openInfoModal() {
+            document.getElementById('infoModal').classList.remove('hidden');
+        }
+        function closeInfoModal() {
+            document.getElementById('infoModal').classList.add('hidden');
+        }
+
+        // Quiz / Practice Module
+        function initQuiz() {
+            quizCurrentIndex = 0;
+            quizScore = 0;
+            quizAnswered = false;
+            // Shuffle dictionary data for random questions
+            quizQuestions = [...dictionaryData].sort(() => 0.5 - Math.random()).slice(0, 5);
+        }
+
+        function renderQuizView() {
+            const mainContainer = document.getElementById('mainContainer');
+            document.getElementById('wordCountBadge').innerText = `Question ${quizCurrentIndex + 1} of ${quizQuestions.length}`;
+
+            if (quizQuestions.length === 0 || quizCurrentIndex >= quizQuestions.length) {
+                mainContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 px-4 text-center space-y-4">
+                        <div class="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-3xl shadow-md">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-xl text-slate-800 dark:text-white">Quiz Completed!</h3>
+                            <p class="text-sm text-slate-500 mt-1">Your Score: <span class="font-bold text-indigo-600 dark:text-indigo-400">${quizScore} / ${quizQuestions.length}</span></p>
+                        </div>
+                        <button onclick="initQuiz(); renderQuizView();" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition shadow-md">
+                            Play Again
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const q = quizQuestions[quizCurrentIndex];
+            // Generate 3 wrong options + 1 correct option
+            const wrongOptions = dictionaryData.filter(item => item.id !== q.id).sort(() => 0.5 - Math.random()).slice(0, 3);
+            const options = [...wrongOptions, q].sort(() => 0.5 - Math.random());
+
+            let html = `
+                <div class="space-y-4 pb-4">
+                    <div class="bg-indigo-600 text-white p-5 rounded-2xl shadow-md text-center space-y-1">
+                        <span class="text-xs font-medium text-indigo-200 uppercase tracking-wider">Translate this Benc'non word</span>
+                        <h2 class="text-2xl font-bold">${q.bn}</h2>
+                        <p class="text-xs text-indigo-200">${q.phonetic} • <span class="italic">${q.pos}</span></p>
+                    </div>
+
+                    <div class="space-y-2.5" id="quizOptionsContainer">
+            `;
+
+            options.forEach(opt => {
+                html += `
+                    <button onclick="handleQuizAnswer(${opt.id}, ${q.id}, this)" class="quiz-option w-full p-4 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl text-left font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700/80 transition flex items-center justify-between shadow-sm">
+                        <span>${opt.en}</span>
+                        <i class="fa-regular fa-circle text-slate-300"></i>
+                    </button>
+                `;
+            });
+
+            html += `
+                    </div>
+                    <div id="quizNextBtnContainer" class="pt-2 hidden">
+                        <button onclick="nextQuizQuestion()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm transition shadow-md">
+                            Next Question <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            mainContainer.innerHTML = html;
+        }
+
+        function handleQuizAnswer(selectedId, correctId, btnElement) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.disabled = true);
+
+            if (selectedId === correctId) {
+                btnElement.className = "quiz-option w-full p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl text-left font-semibold text-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-sm";
+                btnElement.innerHTML += '<i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>';
+                quizScore++;
+            } else {
+                btnElement.className = "quiz-option w-full p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 rounded-xl text-left font-semibold text-rose-800 dark:text-rose-300 flex items-center justify-between shadow-sm";
+                btnElement.innerHTML += '<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>';
+                
+                // Highlight correct one
+                options.forEach(opt => {
+                    if (opt.innerText.includes(dictionaryData.find(d => d.id === correctId).en)) {
+                        opt.className = "quiz-option w-full p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl text-left font-semibold text-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-sm";
+                    }
+                });
+            }
+
+            document.getElementById('quizNextBtnContainer').classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            quizCurrentIndex++;
+            quizAnswered = false;
+            renderQuizView();
+        }
+
+        // Toast Notification Helper
+        function showToast(msg, iconClass = "fa-solid fa-check text-emerald-400") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            toastIcon.className = iconClass;
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
